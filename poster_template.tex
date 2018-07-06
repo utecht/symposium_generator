@@ -1,0 +1,29 @@
+\documentclass{proc}
+\usepackage[utf8]{inputenc}
+\usepackage{framed,enumitem}
+\thispagestyle{empty}
+\begin{document}
+\onecolumn
+\begin{framed}
+\begin{center}
+\textbf{Poster Session I / Odd number posters}
+
+\textbf{10:30 am -- 11:30 am }
+\end{center}
+\end{framed}
+
+\begin{description}[leftmargin=4em,style=nextline]
+%% for p in presentations
+\item[\textbf{P\VAR{p.number}}]
+\textbf{\VAR{p.presenter}}
+
+\underline{\VAR{p.author}}\textsuperscript{\VAR{p.author_ss}}\BLOCK{ for c in p.coauthors }, \VAR{c.name}\textsuperscript{\VAR{c.ss}}\BLOCK{ endfor }
+
+\emph{``\VAR{p.title}'' }
+
+%% for name in p.institutions
+\VAR{name}\textsuperscript{\VAR{loop.index}}
+%% endfor
+%% endfor
+\end{description}
+\end{document}

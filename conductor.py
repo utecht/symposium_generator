@@ -37,9 +37,9 @@ def prep_authors(presentation, author_line):
         if institution not in presentation['institutions']:
             presentation['institutions'].append(institution)
             if len(presentation['institutions']) == 1:
-                presentation['author_ss'] == '1'
+                presentation['author_ss'] = '1'
             elif len(presentation['institutions']) == 2:
-                presentation['author_ss'] == '1,2'
+                presentation['author_ss'] = '1,2'
     else:
         while True:
             if(len(a) == 0):
@@ -70,18 +70,14 @@ def render_poster_sessions(presentations):
     odd_presentations = list(filter(lambda x: x['number'] % 2 == 1, presentations))
     with open('latex/even_session.tex', 'w') as f:
         f.write(template.render(presentations=even_presentations,
-                                times="10:30 am  --  11:30 am",
-                                session_number="I",
-                                even_odd="even"))
+                                session_times="12:15 pm  --  1:15 pm",
+                                session_name="Poster Session II / even number posters"))
     with open('latex/odd_session.tex', 'w') as f:
         f.write(template.render(presentations=odd_presentations,
-                                times="12:15 pm  --  1:15 pm",
-                                session_number="II",
-                                even_odd="odd"))
+                                session_times="10:30 am  --  11:30 am",
+                                session_name="Post Session I / odd number posters"))
 
-def prep_registration(reg):
-    p = {}
-    p['presenter'] = reg['Name (First)'] + ' ' + reg['Name (Last)']
+def prep_presentation(p, reg):
     p['author'] = reg['Abstract Author']
     p['author_ss'] = '1'
     p['title'] = clean_string(reg['Abstract Title'])
@@ -96,6 +92,24 @@ def prep_registration(reg):
         p['author_ss'] == '1,2'
     p['institutions'] = institutions
     prep_authors(p, reg['Add Additional Authors'])
+
+def prep_registration(reg):
+    p = {}
+    p['first_name'] = reg['Name (First)']
+    p['last_name'] = reg['Name (Last)']
+    p['affiliation'] = reg['Registrant Affiliation']
+    if p['affiliation'] == 'Other':
+        p['affiliation'] = reg["Registrant Affiliation - Other"]
+    p['research_program'] = reg["Registrant's Undergraduate Research Program"]
+    p['reg_type'] = reg["Type of Registration"]
+    p['judge'] = reg['Are you willing to help judge student posters and oral presentations?'] == 'Yes'
+    if p['research_program'] == "Other (Please list below)":
+        p['research_program'] = reg["Registrant's Undergraduate Research Program - Other"]
+    if(registration['Presenter'] == 'Yes'):
+        p['presenting'] = 'P'
+        prep_presentation(p, reg)
+    else:
+        p['presenting'] = None
     return p
 
 registrations = []
@@ -104,12 +118,33 @@ with open('registration.csv', 'r', encoding='utf-8-sig') as csvfile:
     for row in csvreader:
         registrations.append(row)
 
-presentations = []
+attendees = []
 for registration in registrations:
-    if(registration['Presenter'] == 'Yes'):
-        presentations.append(prep_registration(registration))
+        attendees.append(prep_registration(registration))
 
-for x, p in enumerate(presentations):
-    p['number'] = x + 1
+poster_index = 1
+talk_index = 1
+for a in attendees:
+    if a.get('presenting', '') == 'P':
+        a['presentation_type'] = 'P'
+        a['number'] = poster_index
+        poster_index += 1
 
+presentations = list(filter(lambda x: x['presenting'] == 'P', attendees))
 render_poster_sessions(presentations)
+
+for a in attendees:
+    if a.get('presenting', '') == 'P':
+        a['activities'] = f"P{a['number']}, Poster"
+    elif a.get('presenting', '') == 'T':
+        a['activities'] = f"T{a['number']}, Oral"
+    elif a['reg_type'] == 'Undergraduate':
+        a['activities'] = 'Non-Presenter'
+    else:
+        a['activities'] = a['reg_type']
+        if a['judge']:
+            a['activities'] += "/Judge"
+
+template = latex_jinja_env.get_template('index_template.tex')
+with open('latex/index.tex', 'w') as f:
+    f.write(template.render(attendees=attendees))

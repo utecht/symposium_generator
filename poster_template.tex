@@ -4,20 +4,29 @@
 \usepackage{framed,enumitem}
 \usepackage{fontspec}
 \setmainfont{Calibri}
+\usepackage{geometry}
+\geometry{
+ papersize={8.5in,11in},
+ left=1in,
+ right=1in,
+ bottom=.5in,
+ top=.44in,}
 \begin{document}
 \onecolumn
 \begin{framed}
 \begin{center}
-\textbf{Poster Session \VAR{session_number} / \VAR{even_odd} number posters}
+  \vspace{-1em}
+  \textbf{\VAR{session_name}}
 
-\textbf{\VAR{times} }
+  \textbf{\VAR{session_times} }
+  \vspace{-1em}
 \end{center}
 \end{framed}
 \begin{description}[leftmargin=4em,style=nextline]
 %% for p in presentations
 \vbox{%
-    \item[\textbf{P\VAR{p.number}}]
-    \textbf{\VAR{p.presenter}}
+    \item[\textbf{\VAR{p.presenting}\VAR{p.number}}]
+    \textbf{\VAR{p.first_name} \VAR{p.last_name}}
 
     \underline{\VAR{p.author}}\textsuperscript{\VAR{p.author_ss}}\BLOCK{ for c in p.coauthors }, \VAR{c.name}\textsuperscript{\VAR{c.ss}}\BLOCK{ endfor }
 

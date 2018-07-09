@@ -1,0 +1,35 @@
+\documentclass{proc}
+\usepackage[utf8]{inputenc}
+\usepackage{textgreek}
+\usepackage{framed,enumitem}
+\usepackage{fontspec}
+\usepackage{ltablex}
+\usepackage[none]{hyphenat}
+\setmainfont{Calibri}
+\usepackage{geometry}
+\geometry{
+ papersize={8.5in,11in},
+ left=.5in,
+ right=.5in,
+ bottom=.5in,
+ top=.5in,}
+\begin{document}
+\onecolumn
+\textbf{2017 CAURS Participants List}
+\begin{center}
+\begin{tabularx}{\textwidth}{ |l|l|X|X|X| } 
+\hline
+\textbf{Name (First)} &
+\textbf{Name (Last)} &
+\textbf{Undergraduate Institution} &
+\textbf{Undergraduate Research Program} &
+\textbf{Administrator/ Mentor/Oral/Poster} \\
+\endhead
+\hline
+%% for attendee in attendees
+\VAR{loop.index}. \VAR{attendee.first_name} & \VAR{attendee.last_name} & \VAR{attendee.affiliation} & \VAR{attendee.research_program} & \VAR{attendee.activities} \\ 
+\hline
+%% endfor
+\end{tabularx}
+\end{center}
+\end{document}

@@ -102,6 +102,10 @@ if __name__ == '__main__':
             a['presentation_type'] = 'P'
             a['number'] = poster_index
             poster_index += 1
+        elif a.get('presenting', '') == 'T':
+            a['presentation_type'] = 'T'
+            a['number'] = talk_index
+            talk_index += 1
             
     # from http://eosrei.net/articles/2015/11/latex-templates-python-and-jinja2-generate-pdfs
     latex_jinja_env = jinja2.Environment(

@@ -103,6 +103,7 @@ if __name__ == '__main__':
             a['number'] = poster_index
             poster_index += 1
             
+    # from http://eosrei.net/articles/2015/11/latex-templates-python-and-jinja2-generate-pdfs
     latex_jinja_env = jinja2.Environment(
             block_start_string = '\BLOCK{',
             block_end_string = '}',
@@ -121,14 +122,27 @@ if __name__ == '__main__':
     template = latex_jinja_env.get_template('poster_template.tex')
     even_presentations = list(filter(lambda x: x['number'] % 2 == 0, presentations))
     odd_presentations = list(filter(lambda x: x['number'] % 2 == 1, presentations))
-    with open('latex/even_session.tex', 'w') as f:
+    with open('latex/even_poster_session.tex', 'w') as f:
         f.write(template.render(presentations=even_presentations,
                                 session_times="12:15 pm  --  1:15 pm",
                                 session_name="Poster Session II / even number posters"))
-    with open('latex/odd_session.tex', 'w') as f:
+    with open('latex/odd_poster_session.tex', 'w') as f:
         f.write(template.render(presentations=odd_presentations,
                                 session_times="10:30 am  --  11:30 am",
                                 session_name="Post Session I / odd number posters"))
+
+    presentations = list(filter(lambda x: x['presenting'] == 'T', attendees))
+    template = latex_jinja_env.get_template('poster_template.tex')
+    even_presentations = list(filter(lambda x: x['number'] % 2 == 0, presentations))
+    odd_presentations = list(filter(lambda x: x['number'] % 2 == 1, presentations))
+    with open('latex/even_talk_session.tex', 'w') as f:
+        f.write(template.render(presentations=even_presentations,
+                                session_times="12:15 pm  --  1:15 pm",
+                                session_name="Talk Session II / even number talks"))
+    with open('latex/odd_talk_session.tex', 'w') as f:
+        f.write(template.render(presentations=odd_presentations,
+                                session_times="10:30 am  --  11:30 am",
+                                session_name="Talk Session I / odd number talks"))
 
     for a in attendees:
         if a.get('presenting', '') == 'P':

@@ -3,50 +3,11 @@ import jinja2
 import os
 from jinja2 import Template
 import csv
+from random import shuffle
 
 def clean_string(text):
     text = text.replace('&', '\\&')
     return text
-
-def prep_authors(presentation, author_line):
-    pre_name = "Abstract Co-Author's Name: "
-    pre_institution = "Co-Author's Institution: "
-    pre_other = "Author's Institution - Other: "
-
-    a = author_line.split(', ')
-
-    presentation['coauthors'] = []
-    # no co-authors, but second institution for primary author
-    if pre_institution in a[0]:
-        institution = a.pop()
-        institution = institution.replace(pre_institution, '')
-        if institution not in presentation['institutions']:
-            presentation['institutions'].append(institution)
-            if len(presentation['institutions']) == 1:
-                presentation['author_ss'] = '1'
-            elif len(presentation['institutions']) == 2:
-                presentation['author_ss'] = '1,2'
-    else:
-    # else process, co-authors
-        while True:
-            if(len(a) == 0):
-                break
-            name = a.pop(0)
-            name = name.replace(pre_name, '')
-            coauthor = {'name': name}
-            if(len(a) > 0 and pre_institution in a[0]):
-                institution = a.pop(0)
-                institution = institution.replace(pre_institution, '')
-                if(institution == 'Other' and 
-                           len(a) > 0 and
-                           pre_other in a[0]):
-                    institution = a.pop(0)
-                    institution = institution.replace(pre_other, '')
-                if institution != 'Other':
-                    if institution not in presentation['institutions']:
-                        presentation['institutions'].append(institution)
-                    coauthor['ss'] = presentation['institutions'].index(institution) + 1
-            presentation['coauthors'].append(coauthor)
 
 def prep_presentation(p, reg):
     p['author'] = reg['Abstract Author']
@@ -62,7 +23,25 @@ def prep_presentation(p, reg):
     elif len(institutions) == 2:
         p['author_ss'] == '1,2'
     p['institutions'] = institutions
-    prep_authors(p, reg['Add Additional Authors'])
+    if reg["Abstract Co-Author's Name"]:
+        name = reg["Abstract Co-Author's Name"]
+        org_name = reg["Co-Author's Institution"]
+        if org_name == "Other":
+            org_name = reg["Co-Author's Institution - Other"]
+        if org_name not in institutions:
+            institutions.append(org_name)
+        ss = institutions.index(org_name) + 1
+        p['coauthors'] = [{'name': name, 'ss': ss}]
+    if reg["Abstract Co-Author's Name2"]:
+        name = reg["Abstract Co-Author's Name2"]
+        org_name = reg["Co-Author's Institution2"]
+        if org_name == "Other":
+            org_name = reg["Co-Author's Institution - Other2"]
+        if org_name not in institutions:
+            institutions.append(org_name)
+        ss = institutions.index(org_name) + 1
+        p['coauthors'].append({'name': name, 'ss': ss})
+
 
 def prep_registration(reg):
     p = {}
@@ -76,8 +55,11 @@ def prep_registration(reg):
     p['judge'] = reg['Are you willing to help judge student posters and oral presentations?'] == 'Yes'
     if p['research_program'] == "Other (Please list below)":
         p['research_program'] = reg["Registrant's Undergraduate Research Program - Other"]
-    if(registration['Presenter'] == 'Yes'):
+    if(registration['Undergraduate Types'] == 'Presenter'):
         p['presenting'] = 'P'
+        if(registration['Oral']):
+            p['presenting'] = 'T'
+            p['number'] = int(registration['Oral'].split()[1])
         prep_presentation(p, reg)
     else:
         p['presenting'] = None
@@ -96,7 +78,6 @@ if __name__ == '__main__':
             attendees.append(prep_registration(registration))
 
     poster_index = 1
-    talk_index = 1
     for a in attendees:
         if a.get('presenting', '') == 'P':
             a['presentation_type'] = 'P'
@@ -104,9 +85,7 @@ if __name__ == '__main__':
             poster_index += 1
         elif a.get('presenting', '') == 'T':
             a['presentation_type'] = 'T'
-            a['number'] = talk_index
-            talk_index += 1
-            
+
     # from http://eosrei.net/articles/2015/11/latex-templates-python-and-jinja2-generate-pdfs
     latex_jinja_env = jinja2.Environment(
             block_start_string = '\BLOCK{',
@@ -139,13 +118,15 @@ if __name__ == '__main__':
     template = latex_jinja_env.get_template('poster_template.tex')
     even_presentations = list(filter(lambda x: x['number'] % 2 == 0, presentations))
     odd_presentations = list(filter(lambda x: x['number'] % 2 == 1, presentations))
+    even_presentations.sort(key=lambda x:x['number'])
+    odd_presentations.sort(key=lambda x:x['number'])
     with open('latex/even_talk_session.tex', 'w') as f:
         f.write(template.render(presentations=even_presentations,
-                                session_times="12:15 pm  --  1:15 pm",
+                                session_times="1:15 pm  --  2:45 pm",
                                 session_name="Talk Session II / even number talks"))
     with open('latex/odd_talk_session.tex', 'w') as f:
         f.write(template.render(presentations=odd_presentations,
-                                session_times="10:30 am  --  11:30 am",
+                                session_times="8:45 am  --  10:15 am",
                                 session_name="Talk Session I / odd number talks"))
 
     for a in attendees:
@@ -158,7 +139,10 @@ if __name__ == '__main__':
         else:
             a['activities'] = a['reg_type']
             if a['judge']:
-                a['activities'] += "/Judge"
+                if len(a['activities']) > 0:
+                    a['activities'] += "/Judge"
+                else:
+                    a['activities'] += "Judge"
 
     template = latex_jinja_env.get_template('index_template.tex')
     with open('latex/index.tex', 'w') as f:

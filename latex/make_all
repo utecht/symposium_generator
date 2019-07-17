@@ -1,1 +1,2 @@
+#!/usr/bin/env sh
 xelatex even_poster_session.tex; xelatex odd_poster_session.tex; xelatex even_talk_session.tex; xelatex odd_talk_session.tex; xelatex index.tex

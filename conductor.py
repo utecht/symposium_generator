@@ -3,7 +3,6 @@ import jinja2
 import os
 from jinja2 import Template
 import csv
-from random import shuffle
 
 def clean_string(text):
     text = text.replace('&', '\\&')
@@ -57,9 +56,9 @@ def prep_registration(reg):
         p['research_program'] = reg["Registrant's Undergraduate Research Program - Other"]
     if(registration['Undergraduate Types'] == 'Presenter'):
         p['presenting'] = 'P'
-        if(registration['Oral']):
+        if('Oral' in registration['Presentation Preference']):
             p['presenting'] = 'T'
-            p['number'] = int(registration['Oral'].split()[1])
+            p['number'] = int(registration['Presentation Preference'].split()[2])
         prep_presentation(p, reg)
     else:
         p['presenting'] = None

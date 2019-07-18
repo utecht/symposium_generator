@@ -58,7 +58,7 @@ def prep_registration(reg):
         p['presenting'] = 'P'
         if('Oral' in registration['Presentation Preference']):
             p['presenting'] = 'T'
-            p['number'] = int(registration['Presentation Preference'].split()[2])
+            p['number'] = int(registration['Presentation Preference'].split()[1].replace('T', ''))
         prep_presentation(p, reg)
     else:
         p['presenting'] = None

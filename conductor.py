@@ -14,7 +14,10 @@ def prep_presentation(p, reg):
     p["author"] = reg["Abstract Author"]
     p["author_ss"] = "1"
     p["title"] = clean_string(reg["Abstract Title"])
-    institutions = [reg["Author's Institution"], reg["Author's Institution - Other"]]
+    institutions = [
+        clean_string(reg["Author's Institution"]),
+        clean_string(reg["Author's Institution - Other"]),
+    ]
     if "" in institutions:
         institutions.remove("")
     if "Other" in institutions:
@@ -25,10 +28,10 @@ def prep_presentation(p, reg):
         p["author_ss"] == "1,2"
     p["institutions"] = institutions
     if reg["Abstract Co-Author's Name"]:
-        name = reg["Abstract Co-Author's Name"]
-        org_name = reg["Co-Author's Institution"]
+        name = clean_string(reg["Abstract Co-Author's Name"])
+        org_name = clean_string(reg["Co-Author's Institution"])
         if org_name == "Other":
-            org_name = reg["Co-Author's Institution - Other"]
+            org_name = clean_string(reg["Co-Author's Institution - Other"])
         if org_name not in institutions:
             institutions.append(org_name)
         ss = institutions.index(org_name) + 1
@@ -54,9 +57,9 @@ def prep_registration(reg):
     p = {}
     p["first_name"] = reg["First Name"]
     p["last_name"] = reg["Last Name"]
-    p["affiliation"] = reg["Home Institution"]
+    p["affiliation"] = clean_string(reg["Home Institution"])
     if p["affiliation"] == "Other":
-        p["affiliation"] = reg["Home  affiliation - Other"]
+        p["affiliation"] = clean_string(reg["Home  affiliation - Other"])
     p["research_program"] = clean_string(reg["Undergraduate Research Program"])
     p["reg_type"] = reg["Type of Registration"]
     p["judge"] = reg["Judge"] == "Yes"
@@ -70,6 +73,7 @@ def prep_registration(reg):
     if registration["Undergraduate Type"] == "Presenter":
         p["presenting"] = reg["presentation preference"][0]
         p["number"] = int(reg["presentation preference"][1:])
+
         # if "Oral" in registration["presentation preference"]:
         #     p["presenting"] = "T"
         #     p["number"] = int(

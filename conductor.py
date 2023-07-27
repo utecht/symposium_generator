@@ -3,6 +3,7 @@ import jinja2
 import os
 from jinja2 import Template
 import csv
+import re
 
 
 def clean_string(text):
@@ -71,8 +72,16 @@ def prep_registration(reg):
             reg["Undergraduate Research Program Other"]
         )
     if registration["Undergraduate Type"] == "Presenter":
-        p["presenting"] = reg["presentation preference"][0]
-        p["number"] = int(reg["presentation preference"][1:])
+        p["presenting"] = reg["presentation preference"]
+        if "P" in p["presenting"]:
+            p["poster_number"] = int(
+                re.findall(r"(?<=P)\d+", reg["presentation preference"])[0]
+            )
+        if "T" in p["presenting"]:
+            p["talk_number"] = int(
+                re.findall(r"(?<=T)\d+", reg["presentation preference"])[0]
+            )
+        # p["number"] = int(reg["presentation preference"][1:])
 
         # if "Oral" in registration["presentation preference"]:
         #     p["presenting"] = "T"
@@ -81,7 +90,7 @@ def prep_registration(reg):
         #     )
         prep_presentation(p, reg)
     else:
-        p["presenting"] = None
+        p["presenting"] = ""
     return p
 
 
@@ -120,14 +129,21 @@ if __name__ == "__main__":
         loader=jinja2.FileSystemLoader(os.path.abspath(".")),
     )
 
-    presentations = list(filter(lambda x: x["presenting"] == "P", attendees))
+    presentations = list(filter(lambda x: "P" in x["presenting"], attendees))
+    for p in presentations:
+        p["number"] = p["poster_number"]
     template = latex_jinja_env.get_template("poster_template.tex")
-    even_presentations = list(filter(lambda x: x["number"] % 2 == 0, presentations))
-    odd_presentations = list(filter(lambda x: x["number"] % 2 == 1, presentations))
+    even_presentations = list(
+        filter(lambda x: x["poster_number"] % 2 == 0, presentations)
+    )
+    odd_presentations = list(
+        filter(lambda x: x["poster_number"] % 2 == 1, presentations)
+    )
     with open("latex/even_poster_session.tex", "w") as f:
         f.write(
             template.render(
                 presentations=even_presentations,
+                session_type="P",
                 session_times="12:15 pm  --  1:15 pm",
                 session_name="Poster Session II / even number posters",
             )
@@ -136,21 +152,27 @@ if __name__ == "__main__":
         f.write(
             template.render(
                 presentations=odd_presentations,
+                session_type="P",
                 session_times="10:30 am  --  11:30 am",
                 session_name="Post Session I / odd number posters",
             )
         )
 
-    presentations = list(filter(lambda x: x["presenting"] == "T", attendees))
+    presentations = list(filter(lambda x: "T" in x["presenting"], attendees))
+    for p in presentations:
+        p["number"] = p["talk_number"]
     template = latex_jinja_env.get_template("poster_template.tex")
-    even_presentations = list(filter(lambda x: x["number"] % 2 == 0, presentations))
-    odd_presentations = list(filter(lambda x: x["number"] % 2 == 1, presentations))
-    even_presentations.sort(key=lambda x: x["number"])
-    odd_presentations.sort(key=lambda x: x["number"])
+    even_presentations = list(
+        filter(lambda x: x["talk_number"] % 2 == 0, presentations)
+    )
+    odd_presentations = list(filter(lambda x: x["talk_number"] % 2 == 1, presentations))
+    even_presentations.sort(key=lambda x: x["talk_number"])
+    odd_presentations.sort(key=lambda x: x["talk_number"])
     with open("latex/even_talk_session.tex", "w") as f:
         f.write(
             template.render(
                 presentations=even_presentations,
+                session_type="T",
                 session_times="1:15 pm  --  2:45 pm",
                 session_name="Talk Session II / even number talks",
             )
@@ -159,16 +181,19 @@ if __name__ == "__main__":
         f.write(
             template.render(
                 presentations=odd_presentations,
+                session_type="T",
                 session_times="8:45 am  --  10:15 am",
                 session_name="Talk Session I / odd number talks",
             )
         )
 
     for a in attendees:
-        if a.get("presenting", "") == "P":
-            a["activities"] = f"P{a['number']}, Poster"
+        if "P" in a.get("presenting", "") and "T" in a.get("presenting", ""):
+            a["activities"] = f"T{a['talk_number']} Oral, P{a['poster_number']} Poster"
+        elif a.get("presenting", "") == "P":
+            a["activities"] = f"P{a['poster_number']} Poster"
         elif a.get("presenting", "") == "T":
-            a["activities"] = f"T{a['number']}, Oral"
+            a["activities"] = f"T{a['talk_number']} Oral"
         elif a["reg_type"] == "Undergraduate":
             a["activities"] = "Non-Presenter"
         else:

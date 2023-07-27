@@ -15,14 +15,21 @@
  top=.5in,}
 \begin{document}
 \onecolumn
-  \begin{tabularx}{\textwidth}{ |l|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X| } 
-\hline
-\textbf{Name (First)} &
-\textbf{Name (Last)} &
-\textbf{Undergraduate Institution} &
-\textbf{Undergraduate Research Program} &
-\textbf{Registration Title / Session Information} \\
-\endhead
+  \begin{tabularx}{\textwidth}{ 
+    |
+    >{\raggedright\arraybackslash}X|
+    >{\raggedright\arraybackslash}X|
+    >{\raggedright\arraybackslash}X|
+    >{\raggedright\arraybackslash}X|
+    >{\raggedright\arraybackslash}X| 
+    } 
+    \hline
+    \textbf{Name (First)} &
+    \textbf{Name (Last)} &
+    \textbf{Undergraduate Institution} &
+    \textbf{Undergraduate Research Program} &
+    \textbf{Registration Title / Session Information} \\
+    \endhead
 \hline
 %% for attendee in attendees
 \VAR{loop.index}. \VAR{attendee.first_name} & \VAR{attendee.last_name} & \VAR{attendee.affiliation} & \VAR{attendee.research_program} & \VAR{attendee.activities} \\ 

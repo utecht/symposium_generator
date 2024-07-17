@@ -17,7 +17,7 @@ def prep_presentation(p, reg):
     p["title"] = clean_string(reg["Abstract Title"])
     institutions = [
         clean_string(reg["Author's Institution"]),
-        clean_string(reg["Author's Institution - Other"]),
+        # clean_string(reg["Author's Institution - Other"]),
     ]
     if "" in institutions:
         institutions.remove("")
@@ -32,7 +32,8 @@ def prep_presentation(p, reg):
         name = clean_string(reg["Abstract Co-Author's Name"])
         org_name = clean_string(reg["Co-Author's Institution"])
         if org_name == "Other":
-            org_name = clean_string(reg["Co-Author's Institution - Other"])
+            # org_name = clean_string(reg["Co-Author's Institution - Other"])
+            org_name = ""
         if org_name not in institutions:
             institutions.append(org_name)
         ss = institutions.index(org_name) + 1
@@ -60,18 +61,19 @@ def prep_registration(reg):
     p["last_name"] = reg["Last Name"]
     p["affiliation"] = clean_string(reg["Home Institution"])
     if p["affiliation"] == "Other":
-        p["affiliation"] = clean_string(reg["Home  affiliation - Other"])
+        # p["affiliation"] = clean_string(reg["Home  affiliation - Other"])
+        p["affiliation"] = ""
     p["research_program"] = clean_string(reg["Undergraduate Research Program"])
     p["reg_type"] = reg["Type of Registration"]
-    p["judge"] = reg["Judge"] == "Yes"
+    # p["judge"] = reg["Judge"] == "Yes"
     if (
         p["research_program"] == "Other (Please list below)"
         or p["research_program"] == "Other"
     ):
         p["research_program"] = clean_string(
-            reg["Undergraduate Research Program Other"]
+            reg["Current institution for Summer Research"]
         )
-    if registration["Undergraduate Type"] == "Presenter":
+    if registration["Presenter"] == "Presenter":
         p["presenting"] = reg["presentation preference"]
         if "P" in p["presenting"]:
             p["poster_number"] = int(
@@ -139,6 +141,8 @@ if __name__ == "__main__":
     odd_presentations = list(
         filter(lambda x: x["poster_number"] % 2 == 1, presentations)
     )
+    even_presentations.sort(key=lambda x: x["poster_number"])
+    odd_presentations.sort(key=lambda x: x["poster_number"])
     with open("latex/even_poster_session.tex", "w") as f:
         f.write(
             template.render(
@@ -198,11 +202,11 @@ if __name__ == "__main__":
             a["activities"] = "Non-Presenter"
         else:
             a["activities"] = a["reg_type"]
-            if a["judge"]:
-                if len(a["activities"]) > 0:
-                    a["activities"] += "/Judge"
-                else:
-                    a["activities"] += "Judge"
+            # if a["judge"]:
+            #     if len(a["activities"]) > 0:
+            #         a["activities"] += "/Judge"
+            #     else:
+            #         a["activities"] += "Judge"
 
     template = latex_jinja_env.get_template("index_template.tex")
     with open("latex/index.tex", "w") as f:

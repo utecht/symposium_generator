@@ -44,15 +44,16 @@ def prep_presentation(p, reg):
                 p["coauthors"] = [{"name": name.strip(), "ss": ss}]
         else:
             p["coauthors"] = [{"name": name, "ss": ss}]
-    # if reg["Abstract Co-Author's Name2"]:
-    #     name = reg["Abstract Co-Author's Name2"]
-    #     org_name = reg["Co-Author's Institution2"]
-    #     if org_name == "Other":
-    #         org_name = reg["Co-Author's Institution - Other2"]
-    #     if org_name not in institutions:
-    #         institutions.append(org_name)
-    #     ss = institutions.index(org_name) + 1
-    #     p["coauthors"].append({"name": name, "ss": ss})
+    if reg["Abstract Co-Author's Name2"]:
+        name = reg["Abstract Co-Author's Name2"]
+        org_name = reg["Co-Author's Institution2"]
+        if org_name == "Other":
+            org_name = ""
+            # org_name = reg["Co-Author's Institution - Other2"]
+        if org_name not in institutions:
+            institutions.append(org_name)
+        ss = institutions.index(org_name) + 1
+        p["coauthors"].append({"name": name, "ss": ss})
 
 
 def prep_registration(reg):
@@ -71,7 +72,7 @@ def prep_registration(reg):
         or p["research_program"] == "Other"
     ):
         p["research_program"] = clean_string(
-            reg["Current institution for Summer Research"]
+            reg["Undergraduate Research Program"]
         )
     if registration["Presenter"] == "Presenter":
         p["presenting"] = reg["presentation preference"]
@@ -92,7 +93,15 @@ def prep_registration(reg):
         #     )
         prep_presentation(p, reg)
     else:
-        p["presenting"] = ""
+        p["presenting"] = reg["presentation preference"]
+        if "P" in p["presenting"]:
+            p["poster_number"] = int(
+                re.findall(r"(?<=P)\d+", reg["presentation preference"])[0]
+            )
+        if "T" in p["presenting"]:
+            p["talk_number"] = int(
+                re.findall(r"(?<=T)\d+", reg["presentation preference"])[0]
+            )
     return p
 
 
@@ -194,9 +203,9 @@ if __name__ == "__main__":
     for a in attendees:
         if "P" in a.get("presenting", "") and "T" in a.get("presenting", ""):
             a["activities"] = f"T{a['talk_number']} Oral, P{a['poster_number']} Poster"
-        elif a.get("presenting", "") == "P":
+        elif "P" in a.get("presenting", ""):
             a["activities"] = f"P{a['poster_number']} Poster"
-        elif a.get("presenting", "") == "T":
+        elif "T" in a.get("presenting", ""):
             a["activities"] = f"T{a['talk_number']} Oral"
         elif a["reg_type"] == "Undergraduate":
             a["activities"] = "Non-Presenter"
